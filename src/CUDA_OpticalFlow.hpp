@@ -1,8 +1,8 @@
-#pragma once  
+#ifndef __CUDA_OPTICALFLOW_HPP
+#define __CUDA_OPTICALFLOW_HPP
+
 #include <iostream>  
 #include <fstream>  
- 
-
  
 #include <opencv2/opencv.hpp>
 
@@ -137,7 +137,7 @@ public:
 #endif
 
 	}  
-	void calcflow_TLV1(GpuMat& pre, GpuMat& current)  
+	void calcflow_TVL1(GpuMat& pre, GpuMat& current)  
 	{  
 #if CV_MAJOR_VERSION >= 3 
     	tvl1->calc(pre, current, d_flow ); 
@@ -178,7 +178,7 @@ public:
         timeSec = (getTickCount() - start) / getTickFrequency(); 
         cout << "Farn : " << timeSec << " sec" << endl; 
     start = getTickCount(); 
-   calcflow_TLV1(d_frame0,d_frame1); 
+   calcflow_TVL1(d_frame0,d_frame1); 
         timeSec = (getTickCount() - start) / getTickFrequency(); 
         cout << "TVL1 : " << timeSec << " sec" << endl; 
  #else   
@@ -201,9 +201,9 @@ public:
 	{
 		calcflow_fastBM(d_frame0,d_frame1); 
 	}
-    else if(method == "TLV1")
+    else if(method == "TVL1")
 	{
-		calcflow_TLV1(d_frame0,d_frame1); 	
+		calcflow_TVL1(d_frame0,d_frame1); 	
 	}
 
     dst = d_flow;
@@ -236,7 +236,7 @@ public:
         timeSec = (getTickCount() - start) / getTickFrequency(); 
         cout << "Farn : " << timeSec << " sec" << endl; 
     start = getTickCount(); 
-   calcflow_TLV1(d_frame0,d_frame1); 
+   calcflow_TVL1(d_frame0,d_frame1); 
         timeSec = (getTickCount() - start) / getTickFrequency(); 
         cout << "TVL1 : " << timeSec << " sec" << endl; 
  #else   
@@ -259,9 +259,9 @@ public:
 	{
 		calcflow_fastBM(d_frame0,d_frame1); 
 	}
-    else if(method == "TLV1")
+    else if(method == "TVL1")
 	{
-		calcflow_TLV1(d_frame0,d_frame1); 	
+		calcflow_TVL1(d_frame0,d_frame1); 	
 	}
  
  #endif 
@@ -558,3 +558,5 @@ private:
 
  
 };
+
+#endif
