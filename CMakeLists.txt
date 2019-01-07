@@ -4,11 +4,14 @@ cmake_minimum_required(VERSION 2.8)
 add_definitions("-std=c++11")
 set(CMAKE_C_COMPILER "/usr/bin/gcc")
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3")
 
 set(rgb_main ./src/extract_rgb.cpp)
 set(flow_main ./src/extract_flow.cpp)
 set(utils ./src/utils.cpp)
+
+
 
 include_directories(./src)
 add_executable(extract_rgb ${rgb_main} ${utils})
@@ -25,7 +28,7 @@ link_directories(${OpenCV_LIBRARY_DIR})
 
 #MPI
 find_package(MPI REQUIRED)
-find_package(Boost 1.54 COMPONENTS mpi serialization system REQUIRED)
+find_package(Boost 1.54 COMPONENTS mpi serialization filesystem REQUIRED)
 
 add_executable(extract_flow ${flow_main} ${utils})
 
@@ -40,4 +43,4 @@ if(MPI_CXX_LINK_FLAGS)
     set_target_properties(extract_flow PROPERTIES LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
 
-
+target_link_libraries(extract_rgb ${Boost_LIBRARIES})

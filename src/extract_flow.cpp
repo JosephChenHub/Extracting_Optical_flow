@@ -43,8 +43,8 @@ int main(int argc, char* argv[]) {
     string outputPath = "./";
     string rm = "false";
     string method = "TVL1";
-    string data_name;
-
+    string cachePath;
+    
     const char * keys = "{ g|   0    |  gpuID  }"
 						"{ w  |   256  |  width  }"
 						"{ h  |   256  |  height }"
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 						"{ o  |   ./   |  output path}" 
 						"{ r  |   false|  remove file}"
 						"{ m  |  TVL1  |  five methods}"
-                        "{ d  | DiDeMo | dataset's name?}";
+                        "{ c  |   ./   |  cache path}";
 
     cv::CommandLineParser cmd(argc, argv, keys);
     if(argc > 1) {
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
    		inputPath = cmd.get<std::string>("i");
   	    outputPath = cmd.get<std::string>("o");
 		method = cmd.get<std::string>("m");
-        data_name = cmd.get<std::string>("d");
+        cachePath = cmd.get<std::string>("c");
 	}
     cout << "width:" << width << "height:" << height << "inputPath:"
         << inputPath << "outputPath:" << outputPath << " method:"
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
          << "split_files[0]:" << split_files[0] << endl;
 
 
-    extract_flow(split_files, outputPath, data_name, width, height, method);
+    extract_flow(split_files, outputPath, cachePath, width, height, method);
 
 	//!end time
 	gettimeofday(&t_end, NULL); 
@@ -139,34 +139,31 @@ int main(int argc, char* argv[]) {
 }
 
 
-void extract_flow(vector<string> files, string outputPath, string data_name, int width, int height,
+void extract_flow(vector<string> files, string outputPath, string cachePath, int width, int height,
         string method) {
     static int count = 0;
     float progress = 0.0; 
 	Mat currentFrame,preFrame,frame;
+    string cache_dir, out_dir;
 	for(int i = 0; i < files.size(); ++i) {
         CUDA_OpticalFlow m_flow(Size(width,height));
-		string directory(files[i]); 
-		directory.erase(directory.end()-4,directory.end());        	//!remove '.avi' or '.mpg', then replace $DATASET with $OUTPUT
-        int pos = directory.find(data_name);
+		string directory(files[i]);  //! path + "/xxx.ext"
+        int pos = directory.rfind("/");
         if(pos == string::npos) {
-            cout << "Cannot match the dataset:" << data_name << endl;
+            cout << "Cannot find the last /:" << directory << endl;
             return;
         }
-        directory.replace(pos, data_name.length(), outputPath);
+        string sub_str(directory.begin()+pos, directory.end()-4);
+        cache_dir = cachePath + sub_str;
+        if(access(cache_dir.c_str(), F_OK) != 0) {
+            makedirs(cache_dir.c_str());
+        }
+		const char * dir = cache_dir.c_str();
+        
 
         count ++;
         progress =  count*100.0f/files.size(); 
 	 	cout<<"process video files:"<<files[i]<<" progress:"<<progress<<"%"<<endl;
-        if(access(directory.c_str(), F_OK) != 0) {
-            makedirs(directory.c_str());
-        }
-		const char * dir = directory.c_str();
-        /*
-		if(access(dir,F_OK) != 0) {
-			mkdir(dir,0777);
-			std::cout<<"mkdir:"<<dir<<std::endl; 
-		} */
 		cv::VideoCapture capture(files[i]);
 		if(!capture.isOpened()) {
 			std::cout<<"fail to open video:"<<files[i]<<std::endl;
